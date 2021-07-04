@@ -25,6 +25,7 @@ import contractions
 import string
 import re
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 print_iter = 0
 def preprocessing(text):
@@ -97,28 +98,28 @@ combined_news.to_pickle('dataframe.pkl')
 # # deserialize dataframe
 # combined_news = pd.read_pickle('dataframe.pkl')
 
-# # word cloud
-# stop_words = stopwords.words('english')
-# stop_words.extend(['re', 'edu'])
-# wordcloud = WordCloud(max_words=1000,
-#                       background_color='white',
-#                       width=1280,
-#                       height=720,
-#                       stopwords=stop_words).generate(' '.join(combined_news[combined_news['class'] == 'fake'].text))
-# plt.imshow(wordcloud, interpolation='bilinear')
-# plt.axis("off")
-# plt.title("Fake news")
-# plt.show()
-#
-# wordcloud = WordCloud(max_words=1000,
-#                       background_color='white',
-#                       width=1280,
-#                       height=720,
-#                       stopwords=stop_words).generate(' '.join(combined_news[combined_news['class'] == 'real'].text))
-# plt.imshow(wordcloud, interpolation='bilinear')
-# plt.axis("off")
-# plt.title("Real news")
-# plt.show()
+# word cloud
+stop_words = stopwords.words('english')
+stop_words.extend(['re', 'edu'])
+wordcloud = WordCloud(max_words=1000,
+                      background_color='white',
+                      width=1280,
+                      height=720,
+                      stopwords=stop_words).generate(' '.join(combined_news[combined_news['class'] == 0].text))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.title("Fake news")
+plt.show()
+
+wordcloud = WordCloud(max_words=1000,
+                      background_color='white',
+                      width=1280,
+                      height=720,
+                      stopwords=stop_words).generate(' '.join(combined_news[combined_news['class'] == 1].text))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.title("Real news")
+plt.show()
 
 # shuffle
 combined_news = combined_news.sample(frac=1).reset_index(drop=True)
@@ -127,54 +128,60 @@ print(combined_news.head()['text'])
 # split dataset
 X_train, X_test, y_train, y_test = train_test_split(combined_news['text'], combined_news['class'], test_size=0.15,
                                                     random_state=69)
-print(y_train)
-print(y_test)
 
-# tfidf = TfidfVectorizer(ngram_range=(1, 3))
-# tfidf_train = tfidf.fit_transform(X_train.values)
-# tfidf_test = tfidf.transform(X_test.values)
-#
-# # -- Multinomial Naive Bayes --
-# mn_naive_bayes = MultinomialNB()
-# mn_naive_bayes.fit(tfidf_train, y_train)
-# mn_naive_bayes_prediction = mn_naive_bayes.predict(tfidf_test)
-#
-# print(" -- Multinomial Naive Bayes classification report -- \n")
-# print(classification_report(y_test, mn_naive_bayes_prediction))
-#
-# print("Accuracy score: " + str(accuracy_score(y_test, mn_naive_bayes_prediction)))
-#
-# # -- K Nearest Neighbors --
-# X_train_knn, X_test_knn, y_train_knn, y_test_knn = train_test_split(combined_news['text_no_preprocessing'],
-#                                                                     combined_news['class'], test_size=0.1,
-#                                                                     random_state=69)
-# tfidf_train_knn = tfidf.fit_transform(X_train_knn.values)
-# tfidf_test_knn = tfidf.transform(X_test_knn.values)
-# k_nearest_neighbors = KNeighborsClassifier(n_neighbors=1)
-# k_nearest_neighbors.fit(tfidf_train_knn, y_train_knn)
-# k_nearest_neighbors_prediction = k_nearest_neighbors.predict(tfidf_test_knn)
-#
-# print(" -- K Nearest Neighbors classification report -- \n")
-# print(classification_report(y_test_knn, k_nearest_neighbors_prediction))
-#
-# print("Accuracy score: " + str(accuracy_score(y_test_knn, k_nearest_neighbors_prediction)))
+tfidf = TfidfVectorizer(ngram_range=(1, 3))
+tfidf_train = tfidf.fit_transform(X_train.values)
+tfidf_test = tfidf.transform(X_test.values)
+
+# -- Multinomial Naive Bayes --
+mn_naive_bayes = MultinomialNB()
+mn_naive_bayes.fit(tfidf_train, y_train)
+mn_naive_bayes_prediction = mn_naive_bayes.predict(tfidf_test)
+
+print(" -- Multinomial Naive Bayes classification report -- \n")
+print(classification_report(y_test, mn_naive_bayes_prediction))
+
+print("Accuracy score: " + str(accuracy_score(y_test, mn_naive_bayes_prediction)))
+
+# -- K Nearest Neighbors --
+X_train_knn, X_test_knn, y_train_knn, y_test_knn = train_test_split(combined_news['text_no_preprocessing'],
+                                                                    combined_news['class'], test_size=0.1,
+                                                                    random_state=69)
+tfidf_train_knn = tfidf.fit_transform(X_train_knn.values)
+tfidf_test_knn = tfidf.transform(X_test_knn.values)
+k_nearest_neighbors = KNeighborsClassifier(n_neighbors=1)
+k_nearest_neighbors.fit(tfidf_train_knn, y_train_knn)
+k_nearest_neighbors_prediction = k_nearest_neighbors.predict(tfidf_test_knn)
+
+print(" -- K Nearest Neighbors classification report -- \n")
+print(classification_report(y_test_knn, k_nearest_neighbors_prediction))
+
+print("Accuracy score: " + str(accuracy_score(y_test_knn, k_nearest_neighbors_prediction)))
 
 # -- LSTM --
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
-from keras.layers.embeddings import Embedding
-from keras.preprocessing import sequence
-from keras.preprocessing.text import Tokenizer
-from keras.callbacks import ReduceLROnPlateau
-from keras.optimizers import Adam
-from keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import LSTM
+from tensorflow.keras.layers import Embedding
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.callbacks import ReduceLROnPlateau
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
+import pickle
 
 MAX_FEATURES = 1000
 MAX_SEQUENCE_LENGTH = 300
 
-tokenizer = Tokenizer(num_words=MAX_FEATURES)
-tokenizer.fit_on_texts(X_train)
+# load tokenizer
+tokenizer = None
+try:
+    with open('tokenizer.pkl', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+except FileNotFoundError:
+    tokenizer = Tokenizer(num_words=MAX_FEATURES)
+    tokenizer.fit_on_texts(X_train)
 sequences_train = tokenizer.texts_to_sequences(X_train)
 sequences_test = tokenizer.texts_to_sequences(X_test)
 
@@ -182,6 +189,10 @@ word_index = tokenizer.word_index
 
 X_train_lstm = sequence.pad_sequences(sequences_train, maxlen=MAX_SEQUENCE_LENGTH)
 X_test_lstm = sequence.pad_sequences(sequences_test, maxlen=MAX_SEQUENCE_LENGTH)
+
+# save tokenizer
+with open('tokenizer.pkl', 'wb') as handle:
+    pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # prepping embedding layer
 print("Prepping embedding layer...")
@@ -212,7 +223,7 @@ embedding_layer = Embedding(len(word_index) + 1,
                             trainable=False)
 
 BATCH_SIZE = 128
-EPOCHS = 6
+EPOCHS = 2
 
 reduce_lr = ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.2, min_lr=0.00001)
 model = Sequential()
@@ -221,7 +232,7 @@ model.add(LSTM(units=128, return_sequences=True, recurrent_dropout=0.25, dropout
 model.add(LSTM(units=64, recurrent_dropout=0.1, dropout=0.1))
 model.add(Dense(units=32, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
-model.compile(optimizer=Adam(lr=0.01), loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=Adam(learning_rate=0.01), loss='binary_crossentropy', metrics=['accuracy'])
 model.summary()
 
 history = model.fit(X_train_lstm, y_train,
@@ -229,13 +240,14 @@ history = model.fit(X_train_lstm, y_train,
                     validation_split=0.2,
                     epochs=EPOCHS,
                     callbacks=[reduce_lr])
+
 # save model
-model.save('lstm_model')
+model.save('lstm_model_tf', save_format='tf', overwrite=True)
 
 # # load the model back
-# model = load_model('lstm_model')
+# model = tf.keras.models.load_model('lstm_model_tf')
 
-lstm_prediction = model.predict(X_test_lstm)
+lstm_prediction = model.predict_classes(X_test_lstm)
 
 print(" -- LSTM classification report -- \n")
 print(classification_report(y_test, lstm_prediction))
