@@ -1,7 +1,7 @@
 # ai-real-vs-fake-news
-Autor: Milovan Milovanović, SW-41-2018
+Naive Bayes, KNN and LSTM classifier models for deciding whether a piece of news is "real" or "fake" (e.g. clickbait).
 
-# Preduslovi za pokretanje
+# Requirements
 * python 3.x
 * keras
 * wordcloud
@@ -10,7 +10,10 @@ Autor: Milovan Milovanović, SW-41-2018
 * pandas
 * numpy
 * nltk
-* https://nlp.stanford.edu/data/glove.twitter.27B.zip ekstraktovan u projektni folder
+* https://nlp.stanford.edu/data/glove.twitter.27B.zip extracted within the root project folder
 
-# Uputstvo za pokretanje
-python main.py
+# How to run
+```python main.py``` within the root project folder.
+
+# Results
+...given [here](https://github.com/milomilo33/ai-real-vs-fake-news/blob/master/poster.png)
